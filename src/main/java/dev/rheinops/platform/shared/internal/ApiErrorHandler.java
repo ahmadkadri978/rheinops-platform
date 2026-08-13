@@ -1,6 +1,7 @@
 package dev.rheinops.platform.shared.internal;
 
 import dev.rheinops.platform.shared.ConflictException;
+import dev.rheinops.platform.shared.InvalidRequestException;
 import dev.rheinops.platform.shared.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
@@ -36,6 +37,11 @@ public class ApiErrorHandler {
     @ExceptionHandler(ConflictException.class)
     ProblemDetail handleConflict(ConflictException exception) {
         return problem(HttpStatus.CONFLICT, exception.code(), exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    ProblemDetail handleInvalidRequest(InvalidRequestException exception) {
+        return problem(HttpStatus.BAD_REQUEST, exception.code(), exception.getMessage());
     }
 
     @ExceptionHandler({DataIntegrityViolationException.class, ObjectOptimisticLockingFailureException.class})

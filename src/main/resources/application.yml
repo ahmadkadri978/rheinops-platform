@@ -70,7 +70,7 @@ management:
 info:
   app:
     name: RheinOps Platform
-    description: Service operations and incident management platform
+    description: Service operations, incident, and customer support platform
     version: "@project.version@"
 
 logging:
@@ -90,3 +90,5 @@ rheinops:
       refill-period: ${RHEINOPS_RATE_LIMIT_REFILL_PERIOD:1m}
       max-clients: ${RHEINOPS_RATE_LIMIT_MAX_CLIENTS:10000}
       expire-after-access: ${RHEINOPS_RATE_LIMIT_EXPIRE_AFTER_ACCESS:10m}
+  support:
+    sla-evaluation-interval: ${RHEINOPS_SLA_EVALUATION_INTERVAL:60000}

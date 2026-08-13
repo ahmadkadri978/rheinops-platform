@@ -23,11 +23,11 @@ The roadmap is ordered to produce reviewable evidence for both junior software e
 
 ## Milestone 3 — Support workflows
 
-- [ ] customer organisations and support cases
-- [ ] SLA policies, breach prediction, and escalation rules
-- [ ] runbook links and resolution notes
-- [ ] full-text search across incidents and diagnostics
-- [ ] operational export with redaction rules
+- [x] customer organisations and support cases
+- [x] SLA policies, breach prediction, and escalation rules
+- [x] runbook links and resolution notes
+- [x] full-text search across incidents and diagnostics
+- [x] operational export with redaction rules
 
 ## Milestone 4 — Reliability lab
 

@@ -5,11 +5,11 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.7-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-RheinOps is a production-oriented service operations and incident management API. It is designed to demonstrate backend engineering and support-engineering skills through an executable system: clear module boundaries, safe incident state transitions, observable runtime behaviour, reproducible infrastructure, and automated quality checks.
+RheinOps is a production-oriented service operations, incident management, and customer support API. It demonstrates backend and support-engineering skills through an executable system: clear module boundaries, safe state transitions, SLA-driven queues, searchable diagnostics, reproducible infrastructure, and automated quality checks.
 
 **Kurzbeschreibung (DE):** Eine nachvollziehbar dokumentierte Plattform zur Verwaltung von Services und Störungen, gebaut mit Java, Spring Boot, PostgreSQL, Docker und CI/CD.
 
-> **Current milestone:** OIDC/JWT authentication, role-based authorisation, an immutable incident timeline, and bounded API rate limiting are implemented. SLA workflows and the operations dashboard remain deliberately tracked as later milestones rather than presented as finished work.
+> **Current milestone:** Customer organisations, support cases, SLA prediction/escalation, runbooks, append-only diagnostics, full-text operational search, and redacted CSV export are implemented. Reliability dashboards and failure drills remain deliberately tracked as later work.
 
 ## Why this project exists
 
@@ -18,6 +18,8 @@ Generic CRUD demos do not show how software behaves under operational pressure. 
 - validated lifecycle transitions and optimistic concurrency;
 - least-privilege OIDC roles and audience-bound JWT validation;
 - append-only incident history with an identity snapshot for every action;
+- customer support cases with snapshotted SLA commitments and optimistic concurrency;
+- ranked PostgreSQL full-text search and structurally redacted operational export;
 - correlation IDs and consistent RFC 9457-style problem responses;
 - database migrations and schema validation;
 - health, readiness, liveness, and Prometheus metrics;
@@ -35,15 +37,20 @@ flowchart TD
     Security --> Web[REST API]
     Web --> Catalog[Service Catalog]
     Web --> Incidents[Incident Management and timeline]
+    Web --> Support[Support cases and SLA]
     Incidents --> Catalog
+    Support --> Incidents
+    Support --> Catalog
     Catalog --> Database[(PostgreSQL)]
     Incidents --> Database
+    Support --> Database
 ```
 
 | Module | Responsibility | Depends on |
 |---|---|---|
 | `servicecatalog` | Registered services and their operational status | `shared` |
 | `incident` | Incident reporting, filtering, and lifecycle transitions | `servicecatalog`, `shared` |
+| `support` | Customer cases, SLA policies, diagnostics, search, and redacted export | `incident`, `servicecatalog`, `shared` |
 | `shared` | Security boundary, actor context, problem details, pagination, and request correlation | — |
 
 See [Architecture](docs/architecture.md) and [ADR-0001](docs/adr/0001-modular-monolith.md) for the rationale and trade-offs.
@@ -110,7 +117,10 @@ The direct password grant exists only to make the local CLI demonstration reprod
 |---|:---:|:---:|:---:|:---:|
 | Read services, incidents, and timelines | ✓ | ✓ | ✓ | ✓ |
 | Report and transition incidents | — | ✓ | ✓ | ✓ |
-| Register managed services | — | — | ✓ | ✓ |
+| Read organisations, support cases, SLA state, and search | ✓ | ✓ | ✓ | ✓ |
+| Open/update cases and add diagnostics | — | ✓ | ✓ | ✓ |
+| Register services/organisations and replace SLA policies | — | — | ✓ | ✓ |
+| Export redacted operational data | — | — | ✓ | ✓ |
 | Read Prometheus metrics | — | — | — | ✓ |
 
 Tokens must have the configured issuer, the `rheinops-api` audience, and a recognised role in `realm_access.roles`. Unknown roles grant no RheinOps authority.
@@ -127,6 +137,14 @@ Tokens must have the configured issuer, the `rheinops-api` audience, and a recog
 | `GET` | `/api/v1/incidents/{id}` | Get one incident |
 | `PATCH` | `/api/v1/incidents/{id}/status` | Transition an incident with an expected version |
 | `GET` | `/api/v1/incidents/{id}/timeline` | Read the immutable actor-attributed timeline |
+| `POST/GET` | `/api/v1/customer-organisations` | Register or list customer organisations |
+| `POST/GET` | `/api/v1/customer-organisations/{id}/sla-policies` | Replace or list active SLA policies |
+| `POST/GET` | `/api/v1/support-cases` | Open or filter support cases |
+| `PATCH` | `/api/v1/support-cases/{id}/status` | Transition with expected version and resolution notes |
+| `PATCH` | `/api/v1/support-cases/{id}/runbook` | Attach an HTTPS runbook with expected version |
+| `POST/GET` | `/api/v1/support-cases/{id}/diagnostics` | Append or read actor-attributed diagnostics |
+| `GET` | `/api/v1/operations/search?query=...` | Ranked incident and diagnostic full-text search |
+| `GET` | `/api/v1/operations/exports/cases?from=...&to=...` | Download a management-only redacted CSV |
 
 Example:
 
@@ -150,7 +168,7 @@ Every response contains `X-Correlation-ID`. Error responses include the same ide
 ./mvnw verify
 ```
 
-CI runs the full verification suite and builds the production container. Integration tests exercise the role matrix, a complete incident workflow, stale-update rejection, PostgreSQL migrations, actor attribution, and database-level audit immutability.
+CI runs the full verification suite and builds the production container. Integration tests exercise the role matrix, incident and support workflows, stale-update rejection, PostgreSQL migrations, actor attribution, database-level evidence immutability, SLA escalation, ranked search, and export redaction.
 
 ## Production security profile
 
@@ -159,9 +177,9 @@ Activate `prod` with `SPRING_PROFILES_ACTIVE=prod`. The profile requires explici
 ## Delivery roadmap
 
 1. **Foundation and incident core** — complete.
-2. **Security and auditability** — current milestone.
-3. **Support engineering** — SLA policies, escalation rules, runbooks, and searchable diagnostics.
-4. **Reliability** — Prometheus/Grafana dashboards, alert rules, load tests, and failure drills.
+2. **Security and auditability** — complete.
+3. **Support engineering** — current milestone: SLA policies, escalation rules, runbooks, search, and redacted export.
+4. **Reliability** — next: Prometheus/Grafana dashboards, alert rules, load tests, and failure drills.
 5. **Portfolio demo** — deployed environment, seeded scenario, screenshots, and a short technical walkthrough.
 
 The detailed backlog and acceptance criteria live in [the roadmap](docs/roadmap.md).

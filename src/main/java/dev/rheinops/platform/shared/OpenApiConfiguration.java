@@ -23,7 +23,7 @@ public class OpenApiConfiguration {
         return new OpenAPI().info(new Info()
                 .title("RheinOps Platform API")
                 .version("v1")
-                .description("Service operations and incident lifecycle API")
+                .description("Service operations, incident lifecycle, and SLA-driven support API")
                 .contact(new Contact()
                         .name("Ahmad Kadri")
                         .url("https://github.com/ahmadkadri978"))

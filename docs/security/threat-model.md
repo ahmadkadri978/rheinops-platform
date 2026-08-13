@@ -9,6 +9,8 @@ This model covers the Spring Boot API, PostgreSQL data, the OIDC trust relations
 - service and incident availability data;
 - incident state and optimistic-concurrency version;
 - actor-attributed incident timeline;
+- customer contacts, support-case text, and diagnostic observations;
+- SLA commitments, escalation state, and redacted operational exports;
 - OIDC signing-key trust configuration;
 - operational health and metrics;
 - database and identity-provider credentials.
@@ -33,6 +35,10 @@ This model covers the Spring Boot API, PostgreSQL data, the OIDC trust relations
 | Viewer changes operational state | Explicit method-and-path role matrix; integration test expects `403` | Future endpoints must be added to the matrix before release |
 | Concurrent or replayed incident update | Caller-supplied expected version plus JPA `@Version` | A replay with the current version remains a valid authorised action |
 | Audit row modified or deleted by application code | No mutation API, immutable Hibernate entity, PostgreSQL mutation trigger | Database owners can disable triggers; export to external immutable storage is future work |
+| Diagnostic evidence rewritten | Append-only API, immutable Hibernate entity, PostgreSQL mutation trigger | Database owners remain able to bypass the trigger |
+| Customer PII leaked through operational export | Management-only endpoint; explicit non-PII column allow-list; 31-day window; `no-store` response | Export recipients and downloaded files require their own access and retention controls |
+| Sensitive data exposed through search | Search indexes incidents and diagnostics only; requester contact fields are excluded; authenticated read role required | Operators must not paste credentials or tokens into diagnostic notes |
+| SLA policy change rewrites an existing commitment | Deadlines and warning threshold are snapshotted when the case opens; old policies are retained inactive | Calendar/business-hour policies remain future work |
 | Actor renamed or removed in the identity provider | Subject and display-name snapshot stored with each event | The display name is historical data and may require retention handling |
 | Request flood | Token bucket, bounded client cache, inactive-client expiry | Limit is per instance; use a trusted gateway/distributed backend for replicas |
 | Spoofed forwarding header bypasses IP quota | Limit keys use the direct peer address and forwarded headers are disabled | A production proxy must be explicitly trusted and tested before enabling forwarding |
@@ -43,7 +49,7 @@ This model covers the Spring Boot API, PostgreSQL data, the OIDC trust relations
 ## Security verification
 
 - unit tests verify role-claim allow-listing and rate-limit rejection;
-- integration tests verify anonymous `401`, viewer write `403`, permitted role workflows, actor attribution, and PostgreSQL audit mutation rejection;
+- integration tests verify anonymous `401`, viewer write/export `403`, permitted role workflows, actor attribution, PostgreSQL audit/diagnostic mutation rejection, full-text search, SLA escalation, and export redaction;
 - CI runs migrations against real PostgreSQL and builds the production container;
 - dependency and container updates are proposed by Dependabot.
 

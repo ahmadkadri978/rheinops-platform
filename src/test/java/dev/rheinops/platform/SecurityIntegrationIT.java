@@ -57,6 +57,27 @@ class SecurityIntegrationIT {
     }
 
     @Test
+    void viewerCannotCreateSupportCasesOrExportOperationalData() throws Exception {
+        var viewer = jwt()
+                .jwt(token -> token.subject("viewer-subject").claim("preferred_username", "viewer"))
+                .authorities(new SimpleGrantedAuthority(PlatformRole.VIEWER.authority()));
+
+        mockMvc.perform(post("/api/v1/support-cases")
+                        .with(viewer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is("insufficient_permissions")));
+
+        mockMvc.perform(get("/api/v1/operations/exports/cases")
+                        .with(viewer)
+                        .queryParam("from", "2026-08-01T00:00:00Z")
+                        .queryParam("to", "2026-08-02T00:00:00Z"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is("insufficient_permissions")));
+    }
+
+    @Test
     void livenessInformationRemainsAvailableWithoutCredentials() throws Exception {
         mockMvc.perform(get("/actuator/health/liveness"))
                 .andExpect(status().isOk())
