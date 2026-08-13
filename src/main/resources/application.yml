@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: rheinops-platform
+  datasource:
+    url: ${RHEINOPS_DB_URL:jdbc:postgresql://localhost:5432/rheinops}
+    username: ${RHEINOPS_DB_USER:rheinops}
+    password: ${RHEINOPS_DB_PASSWORD:rheinops_dev}
+    hikari:
+      maximum-pool-size: ${RHEINOPS_DB_POOL_SIZE:10}
+      connection-timeout: 30000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+
+server:
+  port: ${RHEINOPS_SERVER_PORT:8080}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+  observations:
+    annotations:
+      enabled: true
+
+info:
+  app:
+    name: RheinOps Platform
+    description: Service operations and incident management platform
+    version: "@project.version@"
+
+logging:
+  pattern:
+    correlation: "[%X{correlationId:-no-correlation-id}] "
