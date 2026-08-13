@@ -1,12 +1,14 @@
 package dev.rheinops.platform;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import dev.rheinops.platform.shared.PlatformRole;
 import org.junit.jupiter.api.Test;
@@ -82,5 +84,26 @@ class SecurityIntegrationIT {
         mockMvc.perform(get("/actuator/health/liveness"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("UP")));
+    }
+
+    @Test
+    void onlyAdministratorsCanReadPrometheusMetrics() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus")
+                        .with(jwt()
+                                .jwt(token -> token.subject("viewer-subject")
+                                        .claim("preferred_username", "viewer"))
+                                .authorities(new SimpleGrantedAuthority(
+                                        PlatformRole.VIEWER.authority()))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/actuator/prometheus")
+                        .with(jwt()
+                                .jwt(token -> token.subject("administrator-subject")
+                                        .claim("preferred_username", "administrator"))
+                                .authorities(new SimpleGrantedAuthority(
+                                        PlatformRole.ADMINISTRATOR.authority()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "rheinops_support_active_cases{escalation=\"breached\"}")));
     }
 }

@@ -4,6 +4,7 @@ import dev.rheinops.platform.support.EscalationLevel;
 import dev.rheinops.platform.support.SupportCaseStatus;
 import dev.rheinops.platform.support.SupportPriority;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,9 @@ import org.springframework.data.repository.query.Param;
 
 interface SupportCaseRepository
         extends JpaRepository<SupportCaseEntity, UUID>, JpaSpecificationExecutor<SupportCaseEntity> {
+
+    long countByStatusInAndEscalationLevel(
+            Collection<SupportCaseStatus> statuses, EscalationLevel escalationLevel);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """

@@ -25,6 +25,22 @@ management:
   endpoint:
     health:
       show-details: never
+  tracing:
+    sampling:
+      probability: ${RHEINOPS_TRACE_SAMPLING_PROBABILITY:0.1}
+    export:
+      otlp:
+        enabled: ${RHEINOPS_OTLP_TRACING_ENABLED:false}
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: rheinops-platform
+        version: "@project.version@"
+        environment: ${RHEINOPS_ENVIRONMENT:production}
 
 rheinops:
   security:

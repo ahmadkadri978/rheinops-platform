@@ -9,7 +9,7 @@ RheinOps is a production-oriented service operations, incident management, and c
 
 **Kurzbeschreibung (DE):** Eine nachvollziehbar dokumentierte Plattform zur Verwaltung von Services und Störungen, gebaut mit Java, Spring Boot, PostgreSQL, Docker und CI/CD.
 
-> **Current milestone:** Customer organisations, support cases, SLA prediction/escalation, runbooks, append-only diagnostics, full-text operational search, and redacted CSV export are implemented. Reliability dashboards and failure drills remain deliberately tracked as later work.
+> **Current milestone:** The reliability lab is implemented: secured Prometheus scraping, provisioned Grafana/Tempo, ECS JSON logs, W3C traces, SLO-backed k6 scenarios, reversible failure drills, runbooks, and example postmortems. The remaining roadmap is the public portfolio release.
 
 ## Why this project exists
 
@@ -21,8 +21,10 @@ Generic CRUD demos do not show how software behaves under operational pressure. 
 - customer support cases with snapshotted SLA commitments and optimistic concurrency;
 - ranked PostgreSQL full-text search and structurally redacted operational export;
 - correlation IDs and consistent RFC 9457-style problem responses;
+- trace-correlated ECS JSON logs and W3C/OpenTelemetry propagation;
 - database migrations and schema validation;
-- health, readiness, liveness, and Prometheus metrics;
+- health, readiness, liveness, secured Prometheus metrics, alert rules, and Grafana dashboards;
+- versioned load tests, SLOs, reversible failures, runbooks, and postmortems;
 - integration tests against real PostgreSQL;
 - pull-request-driven delivery with repeatable CI.
 
@@ -44,6 +46,11 @@ flowchart TD
     Catalog --> Database[(PostgreSQL)]
     Incidents --> Database
     Support --> Database
+    Web --> Telemetry[Metrics, structured logs, and OTLP traces]
+    Telemetry --> Prometheus[Prometheus alerts]
+    Telemetry --> Tempo[Tempo traces]
+    Prometheus --> Grafana[Grafana dashboard]
+    Tempo --> Grafana
 ```
 
 | Module | Responsibility | Depends on |
@@ -63,7 +70,8 @@ See [Architecture](docs/architecture.md) and [ADR-0001](docs/adr/0001-modular-mo
 - Bucket4j with a bounded Caffeine cache for per-instance API rate limiting
 - PostgreSQL 17 and Flyway migrations
 - Testcontainers for database integration tests
-- OpenAPI/Swagger UI and Micrometer Prometheus metrics
+- OpenAPI/Swagger UI, Micrometer Prometheus metrics, and OpenTelemetry tracing
+- Prometheus, Grafana, Tempo, k6, and Toxiproxy reliability lab
 - Docker multi-stage builds and Docker Compose
 - GitHub Actions, Maven Failsafe, and JaCoCo
 
@@ -82,7 +90,7 @@ Then open:
 - Swagger UI: <http://localhost:8080/swagger-ui.html>
 - OpenAPI JSON: <http://localhost:8080/api-docs>
 - Health: <http://localhost:8080/actuator/health>
-- Prometheus metrics: <http://localhost:8080/actuator/prometheus>
+- Prometheus metrics: <http://localhost:8080/actuator/prometheus> (administrator bearer token required)
 - Keycloak administration: <http://localhost:8090/admin/>
 
 Stop the stack with `docker compose down`. Use `docker compose down -v` only when you intentionally want to delete the local database volume.
@@ -158,6 +166,23 @@ curl -i -X POST http://localhost:8080/api/v1/services \
 
 Every response contains `X-Correlation-ID`. Error responses include the same identifier so an operator can connect a user report to server logs.
 
+## Run the reliability lab
+
+The base stack stays small. Add the reliability overlay when you want monitoring, traces, load, or controlled failures:
+
+```bash
+docker compose -f compose.yaml -f compose.reliability.yaml up --build -d
+```
+
+Open the provisioned [Grafana dashboard](http://localhost:3000/d/rheinops-reliability/rheinops-reliability-overview), [Prometheus](http://localhost:9090), or [Tempo readiness](http://localhost:3200/ready). Run the normal SLO scenario:
+
+```bash
+docker compose -f compose.yaml -f compose.reliability.yaml \
+  --profile load run --rm k6 run /scripts/steady-state.js
+```
+
+The complete workflow—including spike traffic, safe database latency/outage injection, recovery, limitations, and evidence map—is in the [reliability lab guide](docs/reliability/README.md). Objectives and error-budget semantics are explicit in the [SLO specification](docs/reliability/slo.md).
+
 ## Tests and quality checks
 
 ```bash
@@ -168,7 +193,7 @@ Every response contains `X-Correlation-ID`. Error responses include the same ide
 ./mvnw verify
 ```
 
-CI runs the full verification suite and builds the production container. Integration tests exercise the role matrix, incident and support workflows, stale-update rejection, PostgreSQL migrations, actor attribution, database-level evidence immutability, SLA escalation, ranked search, and export redaction.
+CI runs the full verification suite, validates the Compose/Prometheus/Grafana/k6 reliability assets, and builds the production container. Integration tests exercise the role matrix, secured metrics, incident and support workflows, stale-update rejection, PostgreSQL migrations, actor attribution, database-level evidence immutability, SLA escalation, ranked search, and export redaction.
 
 ## Production security profile
 
@@ -178,9 +203,9 @@ Activate `prod` with `SPRING_PROFILES_ACTIVE=prod`. The profile requires explici
 
 1. **Foundation and incident core** — complete.
 2. **Security and auditability** — complete.
-3. **Support engineering** — current milestone: SLA policies, escalation rules, runbooks, search, and redacted export.
-4. **Reliability** — next: Prometheus/Grafana dashboards, alert rules, load tests, and failure drills.
-5. **Portfolio demo** — deployed environment, seeded scenario, screenshots, and a short technical walkthrough.
+3. **Support engineering** — complete: SLA policies, escalation rules, runbooks, search, and redacted export.
+4. **Reliability** — complete: secured observability, SLOs, load tests, failure drills, runbooks, and postmortems.
+5. **Portfolio demo** — next: deployed environment, seeded scenario, screenshots, and a short technical walkthrough.
 
 The detailed backlog and acceptance criteria live in [the roadmap](docs/roadmap.md).
 

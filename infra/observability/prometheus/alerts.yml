@@ -1,0 +1,73 @@
+groups:
+  - name: rheinops-sli-recording
+    interval: 30s
+    rules:
+      - record: rheinops:http_requests:rate5m
+        expr: sum(rate(http_server_requests_seconds_count{job="rheinops-api",uri=~"/api/v1/.*"}[5m]))
+      - record: rheinops:http_5xx:ratio5m
+        expr: >-
+          sum(rate(http_server_requests_seconds_count{job="rheinops-api",uri=~"/api/v1/.*",status=~"5.."}[5m]))
+          / clamp_min(rheinops:http_requests:rate5m, 0.001)
+      - record: rheinops:http_latency:p95_5m
+        expr: >-
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{job="rheinops-api",uri=~"/api/v1/.*"}[5m])))
+
+  - name: rheinops-alerts
+    rules:
+      - alert: RheinOpsApiDown
+        expr: up{job="rheinops-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: rheinops-platform
+        annotations:
+          summary: RheinOps API metrics target is unavailable
+          runbook_url: docs/reliability/runbooks/api-unavailable.md
+          description: Prometheus has failed to scrape the API for two minutes.
+
+      - alert: RheinOpsFastErrorBudgetBurn
+        expr: rheinops:http_5xx:ratio5m > 0.0144 and rheinops:http_requests:rate5m > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: rheinops-platform
+        annotations:
+          summary: RheinOps is rapidly consuming its 99.9% availability error budget
+          runbook_url: docs/reliability/runbooks/api-high-error-rate.md
+          description: The five-minute HTTP 5xx ratio is above 1.44% while traffic is present.
+
+      - alert: RheinOpsP95LatencyHigh
+        expr: rheinops:http_latency:p95_5m > 0.5 and rheinops:http_requests:rate5m > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: rheinops-platform
+        annotations:
+          summary: RheinOps p95 latency exceeds the documented objective
+          runbook_url: docs/reliability/runbooks/database-latency.md
+          description: The five-minute p95 server latency has exceeded 500 ms for ten minutes.
+
+      - alert: RheinOpsDatabasePoolSaturation
+        expr: >-
+          hikaricp_connections_active{job="rheinops-api"}
+          / clamp_min(hikaricp_connections_max{job="rheinops-api"}, 1) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: rheinops-platform
+        annotations:
+          summary: RheinOps database pool is saturated
+          runbook_url: docs/reliability/runbooks/database-latency.md
+          description: More than 90% of the database connection pool is active for five minutes.
+
+      - alert: RheinOpsSupportSlaBreached
+        expr: rheinops_support_active_cases{job="rheinops-api",escalation="breached"} > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: rheinops-platform
+        annotations:
+          summary: One or more active support cases have breached SLA
+          runbook_url: docs/reliability/runbooks/support-sla-breach.md
+          description: The persisted support-case escalation gauge reports an active SLA breach.

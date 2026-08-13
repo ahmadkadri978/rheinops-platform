@@ -14,6 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  reliability-assets:
+    name: Validate reliability assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Validate Compose model and configuration files
+        run: |
+          docker compose -f compose.yaml -f compose.reliability.yaml config --quiet
+          jq --exit-status empty infra/observability/grafana/dashboards/rheinops-overview.json
+          sh -n scripts/reliability/*.sh
+
+      - name: Validate Prometheus configuration and rules
+        run: >-
+          docker run --rm
+          --entrypoint /bin/promtool
+          -v "$PWD/infra/observability/prometheus:/etc/prometheus:ro"
+          prom/prometheus:v3.12.0
+          check config /etc/prometheus/prometheus.yml
+
+      - name: Validate k6 scenarios
+        run: |
+          docker run --rm -v "$PWD/infra/load/k6:/scripts:ro" grafana/k6:1.7.1 inspect /scripts/steady-state.js
+          docker run --rm -v "$PWD/infra/load/k6:/scripts:ro" grafana/k6:1.7.1 inspect /scripts/spike.js
+
   verify:
     name: Verify application
     runs-on: ubuntu-latest
@@ -43,7 +70,7 @@ jobs:
 
   container:
     name: Build production container
-    needs: verify
+    needs: [verify, reliability-assets]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
