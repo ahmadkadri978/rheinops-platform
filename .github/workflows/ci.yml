@@ -25,7 +25,7 @@ jobs:
       - name: Validate Compose model and configuration files
         run: |
           docker compose -f compose.yaml -f compose.reliability.yaml config --quiet
-          jq --exit-status empty infra/observability/grafana/dashboards/rheinops-overview.json
+          jq empty infra/observability/grafana/dashboards/rheinops-overview.json
           sh -n scripts/reliability/*.sh
 
       - name: Validate Prometheus configuration and rules
