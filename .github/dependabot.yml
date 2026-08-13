@@ -1,0 +1,34 @@
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      spring-platform:
+        patterns:
+          - "org.springframework*"
+          - "org.springdoc*"
+      test-tooling:
+        patterns:
+          - "org.testcontainers*"
+          - "org.junit*"
+          - "org.jacoco*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday

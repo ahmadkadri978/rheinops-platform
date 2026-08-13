@@ -1,0 +1,41 @@
+name: Bug report
+description: Report reproducible incorrect behaviour
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, production data, or other sensitive information.
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behaviour
+      description: What happened? Include the correlation ID when available.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start the stack with ...
+        2. Send ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: revision
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0 or commit SHA
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitised diagnostics
+      description: Logs or response details with secrets and personal data removed.
