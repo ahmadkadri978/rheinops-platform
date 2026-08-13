@@ -11,7 +11,9 @@ The application is a Spring Modulith modular monolith backed by PostgreSQL. Modu
 ```mermaid
 flowchart TD
     Request[HTTP request] --> Correlation[Correlation filter]
-    Correlation --> Controller[Module controller]
+    Correlation --> Limit[Bounded IP rate limit]
+    Limit --> JWT[JWT issuer, signature, audience, and role validation]
+    JWT --> Controller[Module controller]
     Controller --> Application[Application service]
     Application --> Domain[Domain entity]
     Application --> Repository[JPA repository]
@@ -38,6 +40,7 @@ flowchart LR
 - Actuator provides health, liveness, readiness, and Prometheus endpoints.
 - PostgreSQL state is retained in a named Compose volume.
 - The application shuts down gracefully and disables Open Session in View.
+- API requests are rate limited before bearer-token processing; health probes are excluded.
 
 ## Consistency model
 
@@ -50,4 +53,18 @@ This is intentionally stricter than last-write-wins because conflicting incident
 
 ## Security boundary
 
-The current milestone has no authentication and must not be exposed publicly. Milestone 2 will add OIDC/JWT authentication, role-based authorisation, and an immutable audit timeline before any public deployment.
+RheinOps is an OAuth2 Resource Server. It validates JWT signature, expiry, not-before time, exact issuer, and the `rheinops-api` audience. Only the explicit Keycloak realm roles `VIEWER`, `RESPONDER`, `INCIDENT_MANAGER`, and `ADMINISTRATOR` are mapped to authorities; unrelated realm roles are ignored.
+
+The HTTP policy is deny-by-default. Liveness and readiness remain anonymous and contain no component details. Application data requires at least `VIEWER`; incident writes require `RESPONDER`; service registration requires `INCIDENT_MANAGER`; Prometheus requires `ADMINISTRATOR`. Sessions, form login, HTTP Basic, cross-origin support, and multipart uploads are disabled.
+
+Local Compose imports a reproducible Keycloak realm and disposable demo users. Production uses externally supplied issuer and JWK Set addresses, disables API documentation, and expects TLS termination at a trusted ingress. Direct password grants are a local demonstration convenience, not the production authentication flow.
+
+## Audit invariants
+
+Creating an incident appends `INCIDENT_CREATED`; every real status change appends `STATUS_CHANGED`. Each entry stores the identity-provider subject, the display name at action time, the previous and new states, and a UTC timestamp. The incident update and timeline append occur in one database transaction.
+
+The timeline has no update or delete API, its Hibernate mapping is immutable, and PostgreSQL rejects row-level `UPDATE` and `DELETE` through a trigger. A database owner can still disable triggers or rewrite storage; protecting against a compromised database administrator requires external immutable export in a later milestone.
+
+## Rate-limit scope
+
+Bucket4j uses a token bucket keyed by the direct network peer address. Caffeine bounds the number of cached client buckets and expires inactive entries, preventing an attacker from causing an unbounded in-memory map. This implementation is intentionally per-instance. A multi-replica deployment must move the limit to a trusted gateway or a distributed Bucket4j backend before claiming a global quota.

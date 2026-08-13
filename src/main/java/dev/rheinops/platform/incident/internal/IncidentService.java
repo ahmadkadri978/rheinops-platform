@@ -5,14 +5,19 @@ import dev.rheinops.platform.incident.IncidentOperations;
 import dev.rheinops.platform.incident.IncidentSeverity;
 import dev.rheinops.platform.incident.IncidentSnapshot;
 import dev.rheinops.platform.incident.IncidentStatus;
+import dev.rheinops.platform.incident.IncidentTimelineEntry;
 import dev.rheinops.platform.incident.TransitionIncidentCommand;
 import dev.rheinops.platform.servicecatalog.ServiceCatalog;
+import dev.rheinops.platform.shared.ActorProvider;
+import dev.rheinops.platform.shared.AuthenticatedActor;
 import dev.rheinops.platform.shared.ResourceNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +26,21 @@ import org.springframework.transaction.annotation.Transactional;
 class IncidentService implements IncidentOperations {
 
     private final IncidentRepository repository;
+    private final IncidentTimelineRepository timelineRepository;
     private final ServiceCatalog serviceCatalog;
+    private final ActorProvider actorProvider;
     private final Clock clock;
 
-    IncidentService(IncidentRepository repository, ServiceCatalog serviceCatalog, Clock clock) {
+    IncidentService(
+            IncidentRepository repository,
+            IncidentTimelineRepository timelineRepository,
+            ServiceCatalog serviceCatalog,
+            ActorProvider actorProvider,
+            Clock clock) {
         this.repository = repository;
+        this.timelineRepository = timelineRepository;
         this.serviceCatalog = serviceCatalog;
+        this.actorProvider = actorProvider;
         this.clock = clock;
     }
 
@@ -42,7 +56,10 @@ class IncidentService implements IncidentOperations {
                 command.severity(),
                 command.affectedServiceId(),
                 now);
-        return toSnapshot(repository.save(incident));
+        IncidentEntity saved = repository.saveAndFlush(incident);
+        timelineRepository.save(
+                IncidentTimelineEntity.incidentCreated(saved.id(), actorProvider.currentActor(), now));
+        return toSnapshot(saved);
     }
 
     @Override
@@ -70,8 +87,29 @@ class IncidentService implements IncidentOperations {
     @Transactional
     public IncidentSnapshot transition(UUID incidentId, TransitionIncidentCommand command) {
         IncidentEntity incident = findEntity(incidentId);
-        incident.transitionTo(command.status(), command.expectedVersion(), clock.instant());
-        return toSnapshot(repository.saveAndFlush(incident));
+        IncidentStatus previousStatus = incident.status();
+        Instant now = clock.instant();
+        incident.transitionTo(command.status(), command.expectedVersion(), now);
+        IncidentEntity saved = repository.saveAndFlush(incident);
+
+        if (previousStatus != saved.status()) {
+            AuthenticatedActor actor = actorProvider.currentActor();
+            timelineRepository.save(IncidentTimelineEntity.statusChanged(
+                    incidentId, previousStatus, saved.status(), actor, now));
+        }
+        return toSnapshot(saved);
+    }
+
+    @Override
+    public Page<IncidentTimelineEntry> timeline(UUID incidentId, Pageable pageable) {
+        findEntity(incidentId);
+        Pageable chronologicalPage = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "sequenceNumber"));
+        return timelineRepository
+                .findByIncidentId(incidentId, chronologicalPage)
+                .map(IncidentService::toTimelineEntry);
     }
 
     private IncidentEntity findEntity(UUID incidentId) {
@@ -93,5 +131,16 @@ class IncidentService implements IncidentOperations {
                 incident.reportedAt(),
                 incident.updatedAt(),
                 incident.resolvedAt());
+    }
+
+    private static IncidentTimelineEntry toTimelineEntry(IncidentTimelineEntity event) {
+        return new IncidentTimelineEntry(
+                event.sequenceNumber(),
+                event.incidentId(),
+                event.eventType(),
+                event.previousStatus(),
+                event.newStatus(),
+                event.actor(),
+                event.occurredAt());
     }
 }

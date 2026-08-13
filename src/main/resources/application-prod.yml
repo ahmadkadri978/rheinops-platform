@@ -1,0 +1,36 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+server:
+  forward-headers-strategy: none
+  error:
+    include-binding-errors: never
+    include-exception: false
+    include-message: never
+    include-stacktrace: never
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+rheinops:
+  security:
+    jwt:
+      issuer-uri: ${RHEINOPS_JWT_ISSUER_URI}
+      jwk-set-uri: ${RHEINOPS_JWT_JWK_SET_URI}
+      audience: ${RHEINOPS_JWT_AUDIENCE:rheinops-api}
+    rate-limit:
+      enabled: true

@@ -15,11 +15,11 @@ The roadmap is ordered to produce reviewable evidence for both junior software e
 
 ## Milestone 2 — Security and auditability
 
-- [ ] OIDC/JWT resource server with a local Keycloak profile
-- [ ] roles for viewer, responder, incident manager, and administrator
-- [ ] immutable incident timeline with actor and timestamp
-- [ ] security integration tests and threat model
-- [ ] API rate limiting and secure production defaults
+- [x] OIDC/JWT resource server with a local Keycloak profile
+- [x] roles for viewer, responder, incident manager, and administrator
+- [x] immutable incident timeline with actor and timestamp
+- [x] security integration tests and threat model
+- [x] API rate limiting and secure production defaults
 
 ## Milestone 3 — Support workflows
 
