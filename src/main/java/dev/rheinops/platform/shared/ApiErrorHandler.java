@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
-public final class ApiErrorHandler {
+public class ApiErrorHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiErrorHandler.class);
     private final Clock clock;
