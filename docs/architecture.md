@@ -2,7 +2,7 @@
 
 ## Context
 
-RheinOps supports operators who register customer-facing services and manage incidents from report to resolution. The first release optimises for a clear domain model, reliable local setup, and operational diagnosis rather than distributed-system complexity.
+RheinOps supports operators who register customer-facing services, manage incidents, and work customer support cases against explicit SLA commitments. The system optimises for a clear domain model, reliable local setup, and operational diagnosis rather than distributed-system complexity.
 
 ## System shape
 
@@ -27,12 +27,16 @@ flowchart TD
 flowchart LR
     Incident[Incident] --> Catalog[Service Catalog]
     Incident --> Shared[Shared Kernel]
+    Support[Support Operations] --> Incident
+    Support --> Catalog
+    Support --> Shared
     Catalog --> Shared
 ```
 
 - `incident` stores the affected service ID and resolves it through `ServiceCatalog`; it does not import the service catalog's JPA entity.
 - Flyway owns the database schema. Hibernate validates the mapping but never mutates production schema.
 - Spring Modulith's architecture test detects cycles and illegal access to internal packages.
+- `support` validates linked incidents and services through their root-package APIs; it never imports their persistence entities.
 
 ## Runtime and observability
 
@@ -50,6 +54,18 @@ Incident updates use two guards:
 2. JPA `@Version` protects against a race between concurrent transactions.
 
 This is intentionally stricter than last-write-wins because conflicting incident updates can mislead responders.
+
+Support-case updates use the same caller-supplied expected version and JPA `@Version` guard. Creating a case snapshots the selected policy's deadlines and warning threshold, so replacing the policy affects only future cases.
+
+## Support workflow and SLA evaluation
+
+Support cases move through `OPEN`, `IN_PROGRESS`, `WAITING_FOR_CUSTOMER`, `RESOLVED`, and `CLOSED`. Resolution notes are mandatory before resolution or closure. The first real transition records the response time; all targets currently use elapsed calendar time and do not pause while waiting for the customer.
+
+The SLA calculator distinguishes response and resolution objectives and reports `ON_TRACK`, `AT_RISK`, `BREACHED`, or `MET`. Escalation is monotonic (`NONE` → `WARNING` → `BREACHED`), refreshed on a schedule and before support-queue reads, and persisted with an updated optimistic-lock version.
+
+Diagnostics are actor-attributed append-only observations. PostgreSQL generated `tsvector` columns and GIN indexes power ranked full-text search across incident descriptions and diagnostics. Search does not index requester contact data.
+
+Operational CSV export is generated from an allow-list containing references, organisation/service slugs, states, deadlines, and timestamps. Requester data, free text, diagnostics, resolution notes, and actor identity are never selected into the export path. Exports require a management role, are limited to 31 days, and return `Cache-Control: no-store`.
 
 ## Security boundary
 
