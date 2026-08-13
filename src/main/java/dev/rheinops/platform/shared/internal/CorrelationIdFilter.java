@@ -1,4 +1,4 @@
-package dev.rheinops.platform.shared;
+package dev.rheinops.platform.shared.internal;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

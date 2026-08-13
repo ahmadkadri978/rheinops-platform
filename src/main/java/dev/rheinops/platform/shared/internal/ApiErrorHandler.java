@@ -1,5 +1,7 @@
-package dev.rheinops.platform.shared;
+package dev.rheinops.platform.shared.internal;
 
+import dev.rheinops.platform.shared.ConflictException;
+import dev.rheinops.platform.shared.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.Instant;
