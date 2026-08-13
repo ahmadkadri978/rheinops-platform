@@ -31,11 +31,11 @@ The roadmap is ordered to produce reviewable evidence for both junior software e
 
 ## Milestone 4 — Reliability lab
 
-- [ ] Prometheus alert rules and Grafana dashboards
-- [ ] structured logs and trace propagation
-- [ ] load-test scenarios with documented SLOs
-- [ ] deliberate database/network failures and recovery runbooks
-- [ ] postmortem template and at least two example postmortems
+- [x] Prometheus alert rules and Grafana dashboards
+- [x] structured logs and trace propagation
+- [x] load-test scenarios with documented SLOs
+- [x] deliberate database/network failures and recovery runbooks
+- [x] postmortem template and at least two example postmortems
 
 ## Milestone 5 — Portfolio release
 

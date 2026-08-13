@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: reliability
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    export:
+      otlp:
+        enabled: true
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: rheinops-platform
+        version: "@project.version@"
+        environment: reliability-lab

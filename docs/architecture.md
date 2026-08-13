@@ -19,6 +19,13 @@ flowchart TD
     Application --> Repository[JPA repository]
     Repository --> PostgreSQL[(PostgreSQL)]
     Application --> Response[API response]
+    Controller --> Observation[Micrometer observation]
+    Observation --> Metrics[Prometheus metrics]
+    Observation --> Traces[OTLP traces]
+    Traces --> Tempo[Tempo]
+    Metrics --> Prometheus[Prometheus rules]
+    Tempo --> Grafana[Grafana]
+    Prometheus --> Grafana
 ```
 
 ## Module dependency rules
@@ -41,10 +48,18 @@ flowchart LR
 ## Runtime and observability
 
 - Every HTTP request receives a bounded, validated correlation ID.
-- Actuator provides health, liveness, readiness, and Prometheus endpoints.
+- Micrometer accepts W3C trace context, emits server HTTP observations, and exports sampled OTLP spans to Tempo when explicitly enabled.
+- The reliability and production profiles emit Elastic Common Schema JSON. MDC fields keep `correlationId`, `traceId`, and `spanId` queryable without adding them as high-cardinality metric labels.
+- A low-priority access-log filter records only the templated route, method, status, and duration. It never records query strings, bearer tokens, request bodies, peer addresses, or customer fields.
+- Actuator provides health, liveness, readiness, and an administrator-only Prometheus endpoint.
+- Prometheus obtains a short-lived token through a dedicated Keycloak client-credentials service account; the metrics route is not made public.
+- The provisioned dashboard covers traffic, HTTP errors, latency percentiles, database pool capacity, and active support cases by SLA escalation.
+- SLO recording/alert rules deliberately aggregate templated API routes and exclude record IDs, actors, requester details, and correlation identifiers.
 - PostgreSQL state is retained in a named Compose volume.
 - The application shuts down gracefully and disables Open Session in View.
 - API requests are rate limited before bearer-token processing; health probes are excluded.
+
+The reliability overlay routes only its JDBC path through Toxiproxy. This permits deterministic latency and network-outage exercises while the base development stack continues to connect directly to PostgreSQL. Recovery scripts remove toxics and re-enable the route; they never delete data. k6 exercises the authenticated support queue against versioned normal and spike thresholds. See [ADR-0004](adr/0004-reliability-lab-and-observability.md) and the [SLO specification](reliability/slo.md).
 
 ## Consistency model
 
@@ -73,7 +88,7 @@ RheinOps is an OAuth2 Resource Server. It validates JWT signature, expiry, not-b
 
 The HTTP policy is deny-by-default. Liveness and readiness remain anonymous and contain no component details. Application data requires at least `VIEWER`; incident writes require `RESPONDER`; service registration requires `INCIDENT_MANAGER`; Prometheus requires `ADMINISTRATOR`. Sessions, form login, HTTP Basic, cross-origin support, and multipart uploads are disabled.
 
-Local Compose imports a reproducible Keycloak realm and disposable demo users. Production uses externally supplied issuer and JWK Set addresses, disables API documentation, and expects TLS termination at a trusted ingress. Direct password grants are a local demonstration convenience, not the production authentication flow.
+Local Compose imports a reproducible Keycloak realm, disposable demo users, and a disposable Prometheus service identity. Production uses externally supplied issuer and JWK Set addresses, disables API documentation, emits structured logs, and expects TLS termination at a trusted ingress. Direct password grants and committed local secrets are demonstration conveniences, not the production authentication flow.
 
 ## Audit invariants
 

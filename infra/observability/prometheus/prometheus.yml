@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: reliability-lab
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: rheinops-api
+    metrics_path: /actuator/prometheus
+    oauth2:
+      client_id: rheinops-prometheus
+      client_secret: prometheus-demo-only
+      token_url: http://keycloak:8080/realms/rheinops/protocol/openid-connect/token
+    static_configs:
+      - targets: ["api:8080"]

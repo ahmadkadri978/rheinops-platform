@@ -66,6 +66,29 @@ management:
   observations:
     annotations:
       enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,250ms,500ms,1s,2s
+  tracing:
+    sampling:
+      probability: ${RHEINOPS_TRACE_SAMPLING_PROBABILITY:0.1}
+    propagation:
+      produce: w3c
+      consume: w3c,b3,b3_multi
+    export:
+      otlp:
+        enabled: ${RHEINOPS_OTLP_TRACING_ENABLED:false}
+  opentelemetry:
+    resource-attributes:
+      service.namespace: rheinops
+      deployment.environment.name: ${RHEINOPS_ENVIRONMENT:local}
+    tracing:
+      export:
+        otlp:
+          endpoint: ${RHEINOPS_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
 
 info:
   app:
@@ -92,3 +115,4 @@ rheinops:
       expire-after-access: ${RHEINOPS_RATE_LIMIT_EXPIRE_AFTER_ACCESS:10m}
   support:
     sla-evaluation-interval: ${RHEINOPS_SLA_EVALUATION_INTERVAL:60000}
+    metrics-refresh-interval: ${RHEINOPS_SUPPORT_METRICS_REFRESH_INTERVAL:15000}
