@@ -5,6 +5,7 @@ import dev.rheinops.platform.servicecatalog.ServiceCatalog;
 import dev.rheinops.platform.servicecatalog.ServiceSnapshot;
 import dev.rheinops.platform.shared.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/services")
 @Tag(name = "Service Catalog")
+@SecurityRequirement(name = "bearerAuth")
 public class ServiceCatalogController {
 
     private final ServiceCatalog serviceCatalog;

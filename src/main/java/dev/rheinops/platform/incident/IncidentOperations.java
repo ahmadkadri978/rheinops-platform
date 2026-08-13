@@ -14,4 +14,6 @@ public interface IncidentOperations {
             IncidentStatus status, IncidentSeverity severity, Pageable pageable);
 
     IncidentSnapshot transition(UUID incidentId, TransitionIncidentCommand command);
+
+    Page<IncidentTimelineEntry> timeline(UUID incidentId, Pageable pageable);
 }

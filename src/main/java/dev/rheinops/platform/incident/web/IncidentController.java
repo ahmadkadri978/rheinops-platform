@@ -8,6 +8,7 @@ import dev.rheinops.platform.incident.IncidentStatus;
 import dev.rheinops.platform.incident.TransitionIncidentCommand;
 import dev.rheinops.platform.shared.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/incidents")
 @Tag(name = "Incident Management")
+@SecurityRequirement(name = "bearerAuth")
 public class IncidentController {
 
     private final IncidentOperations incidents;
@@ -72,5 +74,14 @@ public class IncidentController {
         return IncidentResponse.from(incidents.transition(
                 incidentId,
                 new TransitionIncidentCommand(request.status(), request.expectedVersion().longValue())));
+    }
+
+    @GetMapping("/{incidentId}/timeline")
+    @Operation(summary = "Read the immutable incident timeline")
+    PageResponse<IncidentTimelineResponse> timeline(
+            @PathVariable UUID incidentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return PageResponse.from(
+                incidents.timeline(incidentId, pageable), IncidentTimelineResponse::from);
     }
 }

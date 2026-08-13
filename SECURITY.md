@@ -12,4 +12,6 @@ This project is pre-1.0. Security fixes are applied to the latest revision of `m
 
 ## Current security scope
 
-Authentication and role-based access are scheduled for milestone 2. Until that milestone is complete, RheinOps must be treated as a development demonstration and must not be exposed to an untrusted network.
+RheinOps validates audience-bound OIDC access tokens and applies deny-by-default role-based access. Incident actions are appended to a database-protected audit timeline, and API requests receive a bounded per-instance rate limit.
+
+The Keycloak realm and credentials committed under `infra/keycloak` are disposable local-development fixtures. They are not production secrets and must never be deployed or reused as real credentials. Production must provide its own issuer and JWK Set URLs, terminate TLS at a trusted boundary, and review [the threat model](docs/security/threat-model.md).
