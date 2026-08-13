@@ -13,7 +13,7 @@
 
     <groupId>dev.rheinops</groupId>
     <artifactId>rheinops-platform</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>RheinOps Platform</name>
     <description>Production-oriented service operations, incident, and customer support platform</description>
     <url>https://github.com/ahmadkadri978/rheinops-platform</url>

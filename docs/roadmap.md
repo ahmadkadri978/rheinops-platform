@@ -39,7 +39,8 @@ The roadmap is ordered to produce reviewable evidence for both junior software e
 
 ## Milestone 5 — Portfolio release
 
-- [ ] deployed demonstration environment with seeded non-sensitive data
-- [ ] screenshots and a three-minute technical walkthrough
-- [ ] architecture diagram and trade-off discussion in the CV case study
-- [ ] tagged `v1.0.0` release with release notes
+- [x] deployed demonstration environment with seeded non-sensitive data
+- [x] screenshots and a three-minute technical walkthrough
+- [x] architecture diagram and trade-off discussion in the CV case study
+- [x] `v1.0.0` release notes and tag-validated publishing workflow
+- [ ] publish tag `v1.0.0` from `main` after the release pull request is merged

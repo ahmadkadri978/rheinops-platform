@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title description">
+  <title id="title">RheinOps system architecture</title>
+  <desc id="description">A modular Spring Boot application receives authenticated API traffic through a security boundary, coordinates service catalog, incident, support, and shared modules, stores state in PostgreSQL, and exports operational telemetry.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07171b"/>
+      <stop offset="1" stop-color="#0d2428"/>
+    </linearGradient>
+    <linearGradient id="appPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#102d31"/>
+      <stop offset="1" stop-color="#0c2226"/>
+    </linearGradient>
+    <linearGradient id="cyanPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12363b"/>
+      <stop offset="1" stop-color="#0b272c"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#58d5c5"/>
+    </marker>
+    <style>
+      .label { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #e9f4f2; }
+      .muted { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #8da9a7; }
+      .eyebrow { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #58d5c5; font-weight: 700; letter-spacing: 2px; }
+      .node { fill: #102b2f; stroke: #285057; stroke-width: 2; }
+      .module { fill: #17363a; stroke: #376169; stroke-width: 2; }
+      .flow { fill: none; stroke: #58d5c5; stroke-width: 3; marker-end: url(#arrow); }
+      .flow-muted { fill: none; stroke: #638488; stroke-width: 2; stroke-dasharray: 8 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#background)"/>
+  <circle cx="1475" cy="90" r="230" fill="#174148" opacity="0.18"/>
+  <circle cx="80" cy="830" r="260" fill="#12393e" opacity="0.14"/>
+
+  <g transform="translate(64 62)">
+    <rect x="0" y="2" width="14" height="42" rx="7" fill="#58d5c5"/>
+    <text class="eyebrow" x="34" y="17" font-size="14">RHEINOPS PLATFORM · V1.0</text>
+    <text class="label" x="34" y="58" font-size="38" font-weight="750">System architecture and delivery boundary</text>
+    <text class="muted" x="34" y="88" font-size="17">One deployable · explicit module APIs · operational evidence by design</text>
+  </g>
+
+  <g>
+    <rect class="node" x="64" y="264" width="228" height="174" rx="22"/>
+    <circle cx="104" cy="305" r="18" fill="#183f44" stroke="#58d5c5" stroke-width="2"/>
+    <path d="M96 305h16M104 297v16" stroke="#58d5c5" stroke-width="2" stroke-linecap="round"/>
+    <text class="eyebrow" x="134" y="310" font-size="13">API CLIENTS</text>
+    <text class="label" x="88" y="354" font-size="19" font-weight="700">Operators &amp; tools</text>
+    <text class="muted" x="88" y="385" font-size="15">Viewer · Responder</text>
+    <text class="muted" x="88" y="410" font-size="15">Incident manager · Admin</text>
+  </g>
+
+  <path class="flow" d="M292 351 C330 351 330 351 365 351"/>
+
+  <g>
+    <rect fill="url(#cyanPanel)" stroke="#2d6268" stroke-width="2" x="370" y="214" width="292" height="274" rx="24"/>
+    <text class="eyebrow" x="400" y="252" font-size="13">SECURITY BOUNDARY</text>
+    <text class="label" x="400" y="286" font-size="24" font-weight="700">Request admission</text>
+    <rect x="400" y="312" width="232" height="42" rx="12" fill="#173a3f"/>
+    <circle cx="422" cy="333" r="6" fill="#58d5c5"/>
+    <text class="label" x="441" y="339" font-size="15" font-weight="600">Bounded rate limit</text>
+    <rect x="400" y="366" width="232" height="42" rx="12" fill="#173a3f"/>
+    <circle cx="422" cy="387" r="6" fill="#58d5c5"/>
+    <text class="label" x="441" y="393" font-size="15" font-weight="600">OIDC / JWT audience</text>
+    <rect x="400" y="420" width="232" height="42" rx="12" fill="#173a3f"/>
+    <circle cx="422" cy="441" r="6" fill="#58d5c5"/>
+    <text class="label" x="441" y="447" font-size="15" font-weight="600">RBAC · deny by default</text>
+  </g>
+
+  <g>
+    <rect class="node" x="390" y="526" width="252" height="86" rx="18"/>
+    <circle cx="425" cy="569" r="16" fill="#1a4146"/>
+    <path d="M425 555l11 5v9c0 8-5 13-11 16-6-3-11-8-11-16v-9z" fill="none" stroke="#58d5c5" stroke-width="2"/>
+    <text class="label" x="453" y="563" font-size="18" font-weight="700">Keycloak</text>
+    <text class="muted" x="453" y="587" font-size="14">Issuer · roles · service identity</text>
+    <path class="flow-muted" d="M516 526 L516 489"/>
+  </g>
+
+  <path class="flow" d="M662 351 C696 351 696 351 728 351"/>
+
+  <g>
+    <rect fill="url(#appPanel)" stroke="#3c7076" stroke-width="2.5" x="734" y="174" width="520" height="478" rx="28"/>
+    <rect x="758" y="198" width="472" height="64" rx="16" fill="#14363b"/>
+    <text class="eyebrow" x="782" y="224" font-size="12">SINGLE DEPLOYABLE</text>
+    <text class="label" x="782" y="249" font-size="22" font-weight="750">Java 21 · Spring Boot · Spring Modulith</text>
+
+    <rect class="module" x="758" y="286" width="220" height="112" rx="18"/>
+    <rect x="758" y="286" width="7" height="112" rx="3" fill="#67b7ff"/>
+    <text class="eyebrow" x="786" y="320" font-size="11" fill="#67b7ff">MODULE 01</text>
+    <text class="label" x="786" y="350" font-size="20" font-weight="700">Service catalog</text>
+    <text class="muted" x="786" y="376" font-size="14">Managed service state</text>
+
+    <rect class="module" x="994" y="286" width="236" height="112" rx="18"/>
+    <rect x="994" y="286" width="7" height="112" rx="3" fill="#f0b35c"/>
+    <text class="eyebrow" x="1022" y="320" font-size="11" fill="#f0b35c">MODULE 02</text>
+    <text class="label" x="1022" y="350" font-size="20" font-weight="700">Incident</text>
+    <text class="muted" x="1022" y="376" font-size="14">Lifecycle · timeline · locks</text>
+
+    <rect class="module" x="758" y="414" width="220" height="112" rx="18"/>
+    <rect x="758" y="414" width="7" height="112" rx="3" fill="#b194ef"/>
+    <text class="eyebrow" x="786" y="448" font-size="11" fill="#b194ef">MODULE 03</text>
+    <text class="label" x="786" y="478" font-size="20" font-weight="700">Support</text>
+    <text class="muted" x="786" y="504" font-size="14">SLA · diagnostics · search</text>
+
+    <rect class="module" x="994" y="414" width="236" height="112" rx="18"/>
+    <rect x="994" y="414" width="7" height="112" rx="3" fill="#58d5c5"/>
+    <text class="eyebrow" x="1022" y="448" font-size="11">CROSS-CUTTING</text>
+    <text class="label" x="1022" y="478" font-size="20" font-weight="700">Shared kernel</text>
+    <text class="muted" x="1022" y="504" font-size="14">Security · API · correlation</text>
+
+    <line x1="978" y1="342" x2="994" y2="342" stroke="#638488" stroke-width="2"/>
+    <line x1="868" y1="398" x2="868" y2="414" stroke="#638488" stroke-width="2"/>
+    <line x1="1112" y1="398" x2="1112" y2="414" stroke="#638488" stroke-width="2"/>
+    <line x1="978" y1="470" x2="994" y2="470" stroke="#638488" stroke-width="2"/>
+
+    <rect x="758" y="550" width="472" height="74" rx="16" fill="#0d282c" stroke="#284e54"/>
+    <text class="eyebrow" x="782" y="579" font-size="11">ENFORCED INVARIANTS</text>
+    <text class="label" x="782" y="601" font-size="13" font-weight="600">Module tests · Flyway schema · optimistic concurrency</text>
+    <text class="muted" x="782" y="619" font-size="12">Problem details · correlation IDs · explicit public APIs</text>
+  </g>
+
+  <path class="flow" d="M1254 332 C1284 332 1284 332 1314 332"/>
+  <path class="flow" d="M1254 510 C1284 510 1284 510 1314 510"/>
+
+  <g>
+    <rect class="node" x="1320" y="254" width="218" height="158" rx="22"/>
+    <ellipse cx="1360" cy="300" rx="18" ry="8" fill="none" stroke="#58d5c5" stroke-width="2"/>
+    <path d="M1342 300v26c0 4 8 8 18 8s18-4 18-8v-26M1342 313c0 4 8 8 18 8s18-4 18-8" fill="none" stroke="#58d5c5" stroke-width="2"/>
+    <text class="eyebrow" x="1392" y="304" font-size="12">DATA</text>
+    <text class="label" x="1346" y="363" font-size="21" font-weight="700">PostgreSQL 17</text>
+    <text class="muted" x="1346" y="389" font-size="14">State · FTS · audit trigger</text>
+  </g>
+
+  <g>
+    <rect class="node" x="1320" y="448" width="218" height="158" rx="22"/>
+    <path d="M1345 489h11l8-13 12 26 8-13h12" fill="none" stroke="#58d5c5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="eyebrow" x="1412" y="493" font-size="12">SIGNALS</text>
+    <text class="label" x="1346" y="545" font-size="21" font-weight="700">Observability</text>
+    <text class="muted" x="1346" y="571" font-size="14">Prometheus · Grafana · Tempo</text>
+  </g>
+
+  <g transform="translate(64 716)">
+    <rect x="0" y="0" width="1474" height="122" rx="24" fill="#0e292d" stroke="#315c62" stroke-width="2"/>
+    <rect x="24" y="23" width="8" height="76" rx="4" fill="#58d5c5"/>
+    <text class="eyebrow" x="56" y="38" font-size="12">ARCHITECTURE DECISION</text>
+    <text class="label" x="56" y="69" font-size="22" font-weight="700">A modular monolith is the deliberate first scaling boundary.</text>
+    <text class="muted" x="56" y="96" font-size="15">Gain: simple operations, atomic workflows, fast feedback · Accept: one scaling unit and shared database boundary</text>
+    <rect x="1118" y="26" width="326" height="70" rx="16" fill="#15363a"/>
+    <text class="eyebrow" x="1142" y="51" font-size="11">EXTRACTION TRIGGER</text>
+    <text class="label" x="1142" y="78" font-size="15" font-weight="650">Independent scale or team ownership</text>
+  </g>
+
+  <text class="muted" x="1538" y="874" text-anchor="end" font-size="12">Public portfolio diagram · fictional demo data</text>
+</svg>

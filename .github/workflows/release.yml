@@ -1,0 +1,45 @@
+name: Release v1.0.0
+
+on:
+  push:
+    tags: [v1.0.0]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Verify and publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Validate release assets and tag
+        run: |
+          scripts/portfolio/validate-assets.sh
+          project_version="$(./mvnw -B -ntp help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          test "v${project_version}" = "${GITHUB_REF_NAME}"
+
+      - name: Run full verification suite
+        run: ./mvnw -B -ntp verify
+
+      - name: Build production container
+        run: docker build --tag "rheinops-platform:${GITHUB_REF_NAME}" .
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          --verify-tag
+          --title "RheinOps Platform ${GITHUB_REF_NAME}"
+          --notes-file docs/portfolio/release-notes-v1.0.0.md

@@ -4,6 +4,8 @@
 
 RheinOps supports operators who register customer-facing services, manage incidents, and work customer support cases against explicit SLA commitments. The system optimises for a clear domain model, reliable local setup, and operational diagnosis rather than distributed-system complexity.
 
+The [portfolio architecture diagram](portfolio/assets/system-architecture.svg) presents the same boundary as a recruiter-facing overview. The public console is a separate, static explanation layer with fictional fixtures; it does not sit inside the trusted runtime, call the API, or store production data.
+
 ## System shape
 
 The application is a Spring Modulith modular monolith backed by PostgreSQL. Modules communicate through explicit public APIs in their root packages; persistence entities and web DTOs remain internal.

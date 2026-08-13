@@ -1,6 +1,7 @@
 # RheinOps Platform
 
 [![CI](https://github.com/ahmadkadri978/rheinops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmadkadri978/rheinops-platform/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/live-demo-22b8a7)](https://rheinops-portfolio-demo.kadriahmad59.chatgpt.site)
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.7-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -9,7 +10,15 @@ RheinOps is a production-oriented service operations, incident management, and c
 
 **Kurzbeschreibung (DE):** Eine nachvollziehbar dokumentierte Plattform zur Verwaltung von Services und Störungen, gebaut mit Java, Spring Boot, PostgreSQL, Docker und CI/CD.
 
-> **Current milestone:** The reliability lab is implemented: secured Prometheus scraping, provisioned Grafana/Tempo, ECS JSON logs, W3C traces, SLO-backed k6 scenarios, reversible failure drills, runbooks, and example postmortems. The remaining roadmap is the public portfolio release.
+> **Current milestone:** `v1.0.0` portfolio release candidate. The public evidence console, deterministic fictional scenario, screenshots, three-minute walkthrough, architecture case study, and tag-driven release workflow are ready for review.
+
+## Public portfolio demo
+
+[Open the read-only RheinOps operations console](https://rheinops-portfolio-demo.kadriahmad59.chatgpt.site). It explains one fictional incident from customer report through audit, SLA escalation, reliability diagnosis, and recovery—without exposing credentials, customer data, or a public backend.
+
+[![RheinOps public operations console](docs/portfolio/assets/operations-overview.webp)](https://rheinops-portfolio-demo.kadriahmad59.chatgpt.site)
+
+Use the built-in guided tour or follow the exact [three-minute walkthrough](docs/portfolio/walkthrough.md). The [portfolio evidence hub](docs/portfolio/README.md) maps every visible claim to executable repository evidence, and the [CV case study](docs/portfolio/cv-case-study.md) records the trade-offs a reviewer should challenge.
 
 ## Why this project exists
 
@@ -193,7 +202,7 @@ The complete workflow—including spike traffic, safe database latency/outage in
 ./mvnw verify
 ```
 
-CI runs the full verification suite, validates the Compose/Prometheus/Grafana/k6 reliability assets, and builds the production container. Integration tests exercise the role matrix, secured metrics, incident and support workflows, stale-update rejection, PostgreSQL migrations, actor attribution, database-level evidence immutability, SLA escalation, ranked search, and export redaction.
+CI runs the full verification suite, validates the portfolio and Compose/Prometheus/Grafana/k6 assets, and builds the production container. Integration tests exercise the role matrix, secured metrics, incident and support workflows, stale-update rejection, PostgreSQL migrations, actor attribution, database-level evidence immutability, SLA escalation, ranked search, and export redaction.
 
 ## Production security profile
 
@@ -205,7 +214,7 @@ Activate `prod` with `SPRING_PROFILES_ACTIVE=prod`. The profile requires explici
 2. **Security and auditability** — complete.
 3. **Support engineering** — complete: SLA policies, escalation rules, runbooks, search, and redacted export.
 4. **Reliability** — complete: secured observability, SLOs, load tests, failure drills, runbooks, and postmortems.
-5. **Portfolio demo** — next: deployed environment, seeded scenario, screenshots, and a short technical walkthrough.
+5. **Portfolio release** — release candidate: public fictional demo, evidence screenshots, three-minute walkthrough, architecture/CV case study, release notes, and automated `v1.0.0` publishing.
 
 The detailed backlog and acceptance criteria live in [the roadmap](docs/roadmap.md).
 
