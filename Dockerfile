@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:24-jdk-alpine AS build
 WORKDIR /workspace
 
 COPY .mvn/ .mvn/
@@ -10,7 +10,7 @@ COPY src/ src/
 RUN ./mvnw -B -ntp -DskipTests package \
     && java -Djarmode=tools -jar target/rheinops-platform-*.jar extract --layers --destination target/extracted
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:24-jre-alpine AS runtime
 RUN addgroup -S rheinops && adduser -S rheinops -G rheinops
 WORKDIR /app
 
